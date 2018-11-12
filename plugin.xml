@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-adam-baidu-ocr"
+        version="1.0.10">
+
+    <name>BaiduOcr</name>
+    <description>百度OCR插件</description>
+    <license>MIT</license>
+    <author>hankers.yan</author>
+    <keywords>Baidu, Ocr, AI</keywords>
+
+    <repo>https://github.com/adam198824/cordova-baidu-ocr</repo>
+    <issue>https://github.com/adam198824/cordova-baidu-ocr/issues</issue>
+
+
+    <engines>
+        <engine name="cordova" version=">=7.1.0"/>
+        <engine name="cordova-android" version=">=6.3.0"/>
+    </engines>
+    <js-module src="www/BaiduOcr.js" name="BaiduOcr">
+        <clobbers target="BaiduOcr"/>
+    </js-module>
+
+    <platform name="android">
+        <source-file src="src/android/com/huatuo/cordova/BaiduOcr.java"
+                     target-dir="src/com/huatuo/cordova"/>
+        <source-file src="src/android/com/huatuo/cordova/FileUtil.java"
+                     target-dir="src/com/huatuo/cordova"/>
+        <source-file src="src/android/com/huatuo/cordova/JsonUtils.java"
+                     target-dir="src/com/huatuo/cordova"/>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="BaiduOcr">
+                <param name="android-package" value="com.huatuo.cordova.BaiduOcr"/>
+            </feature>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest" mode="merge">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.CAMERA"/>
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+        </config-file>
+        <framework src="src/android/baiduocr.gradle" custom="true" type="gradleReference"/>
+        <framework src="com.android.support:appcompat-v7:25.4.0"/>
+
+        <resource-file src="src/android/jniLibs/arm64-v8a/libocr-sdk.so" target="jniLibs/arm64-v8a/libocr-sdk.so"/>
+        <resource-file src="src/android/jniLibs/armeabi/libocr-sdk.so" target="jniLibs/armeabi/libocr-sdk.so"/>
+        <resource-file src="src/android/jniLibs/armeabi-v7a/libocr-sdk.so" target="jniLibs/armeabi-v7a/libocr-sdk.so"/>
+        <resource-file src="src/android/jniLibs/x86/libocr-sdk.so" target="jniLibs/x86/libocr-sdk.so"/>
+
+
+        <lib-file src="src/android/ocr-sdk.jar"/>
+        <lib-file src="src/android/ocr_ui-release.aar"/>
+
+    </platform>
+
+
+    <platform name="ios">
+
+        <config-file target="config.xml" parent="/*">
+            <feature name="BaiduOcr">
+                <param name="ios-package" value="CDVBaiduOcr"/>
+            </feature>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+            <string>允许使用摄像头</string>
+        </config-file>
+        <config-file target="*-Info.plist" parent="NSPhotoLibraryUsageDescription">
+            <string>允许使用相册</string>
+        </config-file>
+
+        <header-file src="src/ios/Plugins/CDVBaiduOcr.h"/>
+        <source-file src="src/ios/Plugins/CDVBaiduOcr.m"/>
+
+
+        <framework src="src/ios/lib/AipBase.framework" embed="true" custom="true"/>
+        <framework src="src/ios/lib/AipOcrSdk.framework" embed="true" custom="true"/>
+        <framework src="src/ios/lib/IdcardQuality.framework" embed="true" custom="true"/>
+
+    </platform>
+
+</plugin>

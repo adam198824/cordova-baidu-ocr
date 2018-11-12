@@ -1,0 +1,39 @@
+{
+  "name": "cordova-adam-baidu-ocr",
+  "version": "1.0.10",
+  "description": "Cordova plugin of Baidu Ocr",
+  "cordova": {
+    "id": "cordova-adam-baidu-ocr",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adamin198824/cordova-baidu-ocr.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android",
+    "cordova:plugin"
+  ],
+  "engines": {
+    "cordovaDependencies": {
+      "7.0.0": {
+        "cordova-android": ">=6.3.0"
+      },
+      "7.1.0": {
+        "cordova-android": ">=6.3.0",
+        "cordova": ">=7.1.0"
+      }
+    }
+  },
+  "author": "adamin198824",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adamin198824/cordova-baidu-ocr/issues"
+  },
+  "homepage": "https://github.com/adamin198824/cordova-baidu-ocr#readme"
+}
