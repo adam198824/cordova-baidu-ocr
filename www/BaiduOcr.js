@@ -66,7 +66,6 @@ var BaiduOcr = {
      * 扫描车牌
      * @param successCallback
      * @param errorCallback
-     * @param params 其中的contentType取值： IDCardFront(正面),IDCardBack(反面)
      */
     scanLicensePlate: function ( successCallback, errorCallback) {
 
@@ -76,12 +75,12 @@ var BaiduOcr = {
         }
 
         if (typeof errorCallback !== "function") {
-            console.log("BaiduOcr.scanId failure: failure parameter not a function");
+            console.log("BaiduOcr.scanLicensePlate failure: failure parameter not a function");
             return;
         }
 
         if (typeof successCallback !== "function") {
-            console.log("BaiduOcr.scanId failure: success callback parameter must be a function");
+            console.log("BaiduOcr.scanLicensePlate failure: success callback parameter must be a function");
             return;
         }
 

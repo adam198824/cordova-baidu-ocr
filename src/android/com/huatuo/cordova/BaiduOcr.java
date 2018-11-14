@@ -19,7 +19,6 @@ import com.baidu.ocr.sdk.model.IDCardParams;
 import com.baidu.ocr.sdk.model.IDCardResult;
 import com.baidu.ocr.sdk.model.OcrRequestParams;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
-
 import com.baidu.ocr.ui.camera.CameraActivity;
 import com.baidu.ocr.ui.camera.CameraNativeHelper;
 import com.baidu.ocr.ui.camera.CameraView;
@@ -95,7 +94,7 @@ public class BaiduOcr extends CordovaPlugin {
     void init(JSONArray data, CallbackContext callbackContext) throws JSONException {
         //  初始化本地质量控制模型,释放代码在onDestory中
         //  调用身份证扫描必须加上 intent.putExtra(CameraActivity.KEY_NATIVE_MANUAL, true); 关闭自动初始化和释放本地模型
-        CameraNativeHelper.init(cordova.getContext(), OCR.getInstance().getLicense(),
+        CameraNativeHelper.init(cordova.getContext(), OCR.getInstance(cordova.getContext()).getLicense(),
                 (errorCode, e) -> {
                     String msg;
                     switch (errorCode) {
@@ -123,6 +122,7 @@ public class BaiduOcr extends CordovaPlugin {
 
                 });
         Log.e(TAG, "CameraNativeHelper.init ok");
+        callbackContext.success("init ok");
     }
 
     /**
@@ -204,6 +204,36 @@ public class BaiduOcr extends CordovaPlugin {
         //启动扫描页面
         cordova.getActivity().startActivityForResult(intent, REQUEST_CODE_CAMERA);
     }
+    /**
+     * 扫描
+     *
+     * @param callbackContext
+     * @throws JSONException
+     */
+    void scanLicensePlate( JSONArray data,CallbackContext callbackContext) throws JSONException {
+
+        JSONObject errObj = new JSONObject();
+        //如果百度认证未通过，则直接返回错误
+        if (!hasGotToken) {
+            errObj.put("code", -1);
+            errObj.put("message", "please init ocr");
+            callbackContext.error(errObj);
+            return;
+        }
+
+        
+        
+        Intent intent = new Intent(cordova.getActivity(), CameraActivity.class);
+        intent.putExtra(CameraActivity.KEY_OUTPUT_FILE_PATH,FileUtil.getSaveFile(cordova.getActivity().getApplication()).getAbsolutePath());
+        intent.putExtra(CameraActivity.KEY_CONTENT_TYPE, CameraActivity.CONTENT_TYPE_GENERAL);
+        //设置回调
+        mCallback = callbackContext;
+
+        //把当前plugin设置为startActivityForResult的返回 ****重要****
+        cordova.setActivityResultCallback(this);
+        //启动扫描页面
+        cordova.getActivity().startActivityForResult(intent, REQUEST_CODE_CAMERA);
+    }
 
     /**
      * 销毁
@@ -221,32 +251,39 @@ public class BaiduOcr extends CordovaPlugin {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        String filePath = FileUtil.getSaveFile(cordova.getActivity().getApplicationContext()).getAbsolutePath();
+        if(requestCode == REQUEST_CODE_CAMERA && resultCode == Activity.RESULT_OK){
+            // Uri uri = data.getData();
+            // String filePath = getRealPathFromURI(uri);
 
-        if (requestCode == REQUEST_CODE_PICK_IMAGE_FRONT && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            String filePath = getRealPathFromURI(uri);
-            recIDCard(IDCardParams.ID_CARD_SIDE_FRONT, filePath);
+            recLicensePlate(filePath);
         }
 
-        if (requestCode == REQUEST_CODE_PICK_IMAGE_BACK && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            String filePath = getRealPathFromURI(uri);
-            recIDCard(IDCardParams.ID_CARD_SIDE_BACK, filePath);
-        }
+        // if (requestCode == REQUEST_CODE_PICK_IMAGE_FRONT && resultCode == Activity.RESULT_OK) {
+        //     Uri uri = data.getData();
+        //     String filePath = getRealPathFromURI(uri);
+        //     recIDCard(IDCardParams.ID_CARD_SIDE_FRONT, filePath);
+        // }
 
-        if (requestCode == REQUEST_CODE_CAMERA && resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                String contentType = data.getStringExtra(CameraActivity.KEY_CONTENT_TYPE);
-                String filePath = FileUtil.getSaveFile(cordova.getActivity().getApplicationContext()).getAbsolutePath();
-                if (!TextUtils.isEmpty(contentType)) {
-                    if (CameraActivity.CONTENT_TYPE_ID_CARD_FRONT.equals(contentType)) {
-                        recIDCard(IDCardParams.ID_CARD_SIDE_FRONT, filePath);
-                    } else if (CameraActivity.CONTENT_TYPE_ID_CARD_BACK.equals(contentType)) {
-                        recIDCard(IDCardParams.ID_CARD_SIDE_BACK, filePath);
-                    }
-                }
-            }
-        }
+        // if (requestCode == REQUEST_CODE_PICK_IMAGE_BACK && resultCode == Activity.RESULT_OK) {
+        //     Uri uri = data.getData();
+        //     String filePath = getRealPathFromURI(uri);
+        //     recIDCard(IDCardParams.ID_CARD_SIDE_BACK, filePath);
+        // }
+
+        // if (requestCode == REQUEST_CODE_CAMERA && resultCode == Activity.RESULT_OK) {
+        //     if (data != null) {
+        //         String contentType = data.getStringExtra(CameraActivity.KEY_CONTENT_TYPE);
+        //         String filePath = FileUtil.getSaveFile(cordova.getActivity().getApplicationContext()).getAbsolutePath();
+        //         if (!TextUtils.isEmpty(contentType)) {
+        //             if (CameraActivity.CONTENT_TYPE_ID_CARD_FRONT.equals(contentType)) {
+        //                 recIDCard(IDCardParams.ID_CARD_SIDE_FRONT, filePath);
+        //             } else if (CameraActivity.CONTENT_TYPE_ID_CARD_BACK.equals(contentType)) {
+        //                 recIDCard(IDCardParams.ID_CARD_SIDE_BACK, filePath);
+        //             }
+        //         }
+        //     }
+        // }
 
     }
 
@@ -255,7 +292,7 @@ public class BaiduOcr extends CordovaPlugin {
      */
     private void initAccessToken() {
 
-        OCR.getInstance().initAccessToken(new OnResultListener<AccessToken>() {
+        OCR.getInstance(cordova.getContext()).initAccessToken(new OnResultListener<AccessToken>() {
             @Override
             public void onResult(AccessToken accessToken) {
                 String token = accessToken.getAccessToken();
@@ -323,7 +360,7 @@ public class BaiduOcr extends CordovaPlugin {
         // 设置图像参数压缩质量0-100, 越大图像质量越好但是请求时间越长。 不设置则默认值为20
         param.setImageQuality(20);
 
-        OCR.getInstance().recognizeIDCard(param, new OnResultListener<IDCardResult>() {
+        OCR.getInstance(cordova.getContext()).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override
             public void onResult(IDCardResult result) {
                 if (result != null && mCallback != null) {
@@ -342,17 +379,16 @@ public class BaiduOcr extends CordovaPlugin {
         });
     }
 
-    private void recLicensePlate(String idCardSide, String filePath) {
+    private void recLicensePlate(String filePath) {
         OcrRequestParams param = new OcrRequestParams();
         param.setImageFile(new File(filePath));
-        param.setImageQuality(20);
 
-        OCR.getInstance().recognizeLicensePlate(param, new OnResultListener<OcrResponseResult>() {
+        OCR.getInstance(cordova.getContext()).recognizeLicensePlate(param, new OnResultListener<OcrResponseResult>() {
             @Override
             public void onResult(OcrResponseResult result) {
                 if (result != null && mCallback != null) {
                     Log.i(TAG, result.toString());
-                    mCallback.success(JsonUtils.toJson(result));
+                    mCallback.success(result.getJsonRes());
                 }
             }
 
